@@ -1,5 +1,6 @@
-// No need to change pre-written code.
-// Make necessary imports here.
+// don't change the prewritten code
+// change the code for 'join' event
+
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -21,7 +22,8 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
     console.log("Connection made.");
 
-    socket.on("join", (data) => {
+    socket.on("join", async (data) => {
+        // Emit a welcome message to the user who joined
         // Emit a welcome message to the user who joined
         socket.emit("message", { text: `Welcome, ${data.username}!` });
 
@@ -32,11 +34,21 @@ io.on("connection", (socket) => {
 
         // Join the room
         socket.join(data.room);
+        // write your code here
+
+        socket.username = data.username;
+        //send old messages to the client
+        try{
+            const messages = await messageModel.find().sort({timestamp:1}).limit(50);
+            // console.log(messages);
+            socket.emit('previousMessages', messages)
+        }catch(err){
+            console.log(err)
+        }
     });
 
     socket.on("sendMessage", async (data) => {
 
-        // write your code here
         const message = new messageModel({
             username: data.username,
             text: data.message,
