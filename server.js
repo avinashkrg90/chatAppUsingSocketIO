@@ -1,14 +1,15 @@
-// No need to change the pre-written code
-// Implement the features in io.on() section
+// No need to change pre-written code.
+// Make necessary imports here.
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import { messageModel } from './message.schema.js';
 
 export const app = express();
 app.use(cors());
 
-const server = http.createServer(app);
+export const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
@@ -20,7 +21,6 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
     console.log("Connection made.");
 
-    // Write your code here
     socket.on("join", (data) => {
         // Emit a welcome message to the user who joined
         socket.emit("message", { text: `Welcome, ${data.username}!` });
@@ -37,6 +37,13 @@ io.on("connection", (socket) => {
     socket.on("sendMessage", async (data) => {
 
         // write your code here
+        const message = new messageModel({
+            username: data.username,
+            text: data.message,
+            room: data.room
+        })
+
+        await message.save();
 
         // Broadcast the received message to all users in the same room
         io.to(data.room).emit("message", {
@@ -51,6 +58,3 @@ io.on("connection", (socket) => {
 });
 
 
-server.listen(3000, ()=>{
-    console.log("App is listening on 3000");
-})
